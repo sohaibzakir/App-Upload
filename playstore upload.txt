@@ -1,0 +1,39 @@
+for generate keychain 
+  keytool -genkey -v -keystore %userprofile%\upload-keystore.jks ^
+          -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 ^
+          -alias upload
+run above command in powershell
+and if keytool issue add jre/bin in environmental variable
+
+add a keychain in android/app/(keychain)
+Then create a key.properties file in android folder
+
+storePassword=12345  <password>
+keyPassword=12345    <password>
+keyAlias=upload      <name of keychain file>
+storeFile=storeFile=../app/upload-keystore.jks    <location of keychain>
+
+
+Then in app/build.gradle
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+   keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+add above commands before android{}
+
+and
+
+ signingConfigs {
+      release {
+         keyAlias keystoreProperties['keyAlias']
+         keyPassword keystoreProperties['keyPassword']
+         storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+         storePassword keystoreProperties['storePassword']
+      }
+   }
+add above commands before build types 
+and change
+[signingConfigs.debug to signingConfigs.release]
+in buildTypes{release{}}
+then run command flutter build appbundle.
